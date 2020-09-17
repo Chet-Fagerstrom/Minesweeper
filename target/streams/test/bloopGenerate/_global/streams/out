@@ -1,0 +1,4 @@
+[debug] [minesweeper-test] Classpath dependencies List()
+[debug] [minesweeper-test] Dependencies from configurations List(minesweeper)
+[debug] Bloop wrote the configuration of project 'minesweeper-test' to 'C:\Users\Chet\Minesweeper\.bloop\minesweeper-test.json'
+[success] Generated .bloop\minesweeper-test.json
