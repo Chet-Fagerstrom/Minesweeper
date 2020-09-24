@@ -1,0 +1,13 @@
+[0m[[0m[31merror[0m] [0m[0mC:\Users\Chet\Minesweeper\src\main\scala\Minesweeper.scala:25:34: Symbol 'type javafx.util.Pair' is missing from the classpath.[0m
+[0m[[0m[31merror[0m] [0m[0mThis symbol is required by 'method scalafx.util.UtilIncludes.tuple22jfxPair'.[0m
+[0m[[0m[31merror[0m] [0m[0mMake sure that type Pair is in your classpath and check for conflicting dependencies with `-Ylog-classpath`.[0m
+[0m[[0m[31merror[0m] [0m[0mA full rebuild may help if 'UtilIncludes.class' was compiled against an incompatible version of javafx.util.[0m
+[0m[[0m[31merror[0m] [0m[0m    val pw = new PrintWriter(new FileWriter("MineSweeperScores.txt", true))[0m
+[0m[[0m[31merror[0m] [0m[0m                                 ^[0m
+[0m[[0m[31merror[0m] [0m[0mC:\Users\Chet\Minesweeper\src\main\scala\Minesweeper.scala:51:13: Symbol 'type javafx.event.EventHandler' is missing from the classpath.[0m
+[0m[[0m[31merror[0m] [0m[0mThis symbol is required by 'method scalafx.scene.Node.onMouseClicked'.[0m
+[0m[[0m[31merror[0m] [0m[0mMake sure that type EventHandler is in your classpath and check for conflicting dependencies with `-Ylog-classpath`.[0m
+[0m[[0m[31merror[0m] [0m[0mA full rebuild may help if 'Node.class' was compiled against an incompatible version of javafx.event.[0m
+[0m[[0m[31merror[0m] [0m[0m            button.onMouseClicked = (me:MouseEvent) => {[0m
+[0m[[0m[31merror[0m] [0m[0m            ^[0m
+[0m[[0m[31merror[0m] [0m[0mtwo errors found[0m
