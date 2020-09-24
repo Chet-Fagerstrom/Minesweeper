@@ -19,10 +19,13 @@ import scala.io.Source
 import scalafx.scene.control.Alert._
 import scala.io.StdIn._
 import scala.collection.mutable
+import scalafx.scene.image.Image
+import scalafx.scene.image.ImageView
 
 
 
 object Minesweeper {
+
   def main(args: Array[String]): Unit = {
 
     
@@ -43,8 +46,8 @@ object Minesweeper {
           val gameStart = new TextInputDialog(defaultValue = ""){ //game prep dialog box
             initOwner(stage)
             title = "New Game"
-            headerText = "Game prep: "
-            contentText = "Enter comma separated game parameters as follows: height,width,number of mines "
+            headerText = "Game Setup"
+            contentText = "Enter comma separated game parameters as follows: height,width,number of mines \n Cancel for default settings "
           }
           
           val input = gameStart.showAndWait() match {
@@ -97,20 +100,27 @@ object Minesweeper {
         }
         
         def recurClear(currTile: Tile, currBut: Button, field: Minefield, buttons: IndexedSeq[Button]): Unit = {
-          currTile.flip()
-          val surr = field.getSurr(currTile.x, currTile.y)
-          if (surr > 0){
-            currBut.text = "" + surr
-          } else {
-            currBut.text = ""
-            //field.getSurrTiles(currTile).map { case (x,y) => recurClear(field.getTileAt(x,y), getButtonAt(butTiles, x, y), field, buttons)}
+          if(!currTile.flipped()){
+            currTile.flip()
+            val surr = field.getSurr(currTile.x, currTile.y)
+            if (surr > 0){
+              currBut.text = "" + surr
+            } else {
+              currBut.text = ""
+              println(field.getSurrTiles(currTile))
+              field.getSurrTiles(currTile).map { case (x,y) => recurClear(field.getTileAt(x,y), getButtonAt(butTiles, x, y), field, buttons)}
+            }
+            currBut.background = new Background(Array(new BackgroundFill(Gray, new CornerRadii(4), Insets.apply(.25))))
           }
-          currBut.background = new Background(Array(new BackgroundFill(Gray, new CornerRadii(4), Insets.apply(.25))))
         }
         
         def getButtonAt(bT: mutable.ListBuffer[(Button,Tile)], x: Int, y: Int): Button = {
           bT.find { case (b,t) => t.x == x && t.y == y}.get._1
         }
+
+        // def tileIsSatisfied(field: Minefield, t: Tile, b: Button): Boolean = {
+        //   field.getSurr(t.x,t.y) == b.text.value
+        // }
         
         title = w + " by " + h + " Minesweeper Game by Chet Fagerstrom"
         
@@ -140,24 +150,24 @@ object Minesweeper {
                   button.text = if(thisTile.marked()) "Flag" else ""
                 } else if(me.button == MouseButton.Primary){//Tile Action
                   if(!thisTile.marked()){
-                    if(!thisTile.hasMine) {//Didn't step on a mine
-                      recurClear(thisTile, button, field, buttons)
-                      // thisTile.flip()
-                      // val surr = field.getSurr(thisTile.x, thisTile.y)
-                      // if (surr > 0) button.text = "" + surr
-                      // else button.text = ""
-                      // button.background = new Background(Array(new BackgroundFill(Gray, new CornerRadii(4), Insets.apply(.25))))
-                      if(field.isCleared()){//Win
-                        gameOver = true
-                        title = ":)"
-                        winHandler(start)
-                      }
-                    } else {
+                    if(!thisTile.flipped()){
+                      if(!thisTile.hasMine) {//Didn't step on a mine
+                        recurClear(thisTile, button, field, buttons)
+                        if(field.isCleared()){//Win
+                          gameOver = true
+                          title = ":)"
+                          winHandler(start)
+                        }
+                      } else {
 
-                      button.text = "You have\n exploded."
-                      gameOver = true
-                      title = ":("
-                      lossHandler()
+                        button.text = "You have\n exploded."
+                        gameOver = true
+                        title = ":("
+                        lossHandler()
+                      }
+                    } else if (button.text.value.charAt(0).isDigit) { //clicking a clue
+                      // val numSurrMines = button.text.value.toInt
+                      // val x = field.getSurrTiles(thisTile)
                     }
                   }
                 }
