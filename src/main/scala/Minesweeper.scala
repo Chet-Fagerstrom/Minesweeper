@@ -18,6 +18,7 @@ import java.io.FileWriter
 import scala.io.Source
 import scalafx.scene.control.Alert._
 import scala.io.StdIn._
+import scala.collection.mutable
 
 
 
@@ -34,35 +35,46 @@ object Minesweeper {
 
     val pw = new PrintWriter(new FileWriter("MineSweeperScores.txt", true))
 
-    
-    println("How many tiles tall do you want your minefield to be? I recommend 9.")
-    // val h = readLine.toInt
-    val h = 9
-
-    println("How many tiles wide do you want your minefield to be? I recommend 9 again.")
-    // val w = readLine.toInt
-    val w = 9
-
-    println("How many mines do you want in this minefield? I recommend 10.")
-    // val m = readLine.toInt
-    val m = 10
-
     val app = new JFXApp {
       stage = new JFXApp.PrimaryStage {
-        val start = System.nanoTime()
 
+        var hwm: Array[String] =  Array()
+        while(hwm.length != 3){
+          val gameStart = new TextInputDialog(defaultValue = ""){ //game prep dialog box
+            initOwner(stage)
+            title = "New Game"
+            headerText = "Game prep: "
+            contentText = "Enter comma separated game parameters as follows: height,width,number of mines "
+          }
+          
+          val input = gameStart.showAndWait() match {
+            case Some(value) => value
+            case None => "9,9,10"
+          }
+          
+          val pre = input.split(",").toArray
+          if(pre.length == 3 && pre.forall(_.charAt(0).isDigit)){
+            hwm = pre
+          } else {
+            Array()
+          }
+        }
 
-        def winHandler(): Unit = {
+        val h = hwm(0).toInt
+        val w = hwm(1).toInt
+        val m = hwm(2).toInt
+        
+        def winHandler(start: Long): Unit = {
           val end = System.nanoTime()
           val time = (end-start)/1e9 //Converts game time length to seconds
           val dialog = new TextInputDialog(defaultValue = ""){ //pops up Winner dialog box
             initOwner(stage)
-              title = "Winner Winner Chicken Dinner"
-              headerText = "Your time: " + time
-              contentText = "Please Enter Your Name"
+            title = "Win!"
+            headerText = "Your time: " + time
+            contentText = "Please Enter Your Name"
           }
           val ign = dialog.showAndWait() match {
-            case Some(name) => if(name.trim=="") "Anonymous" else name //If a player is a moron and enters some spaces as their name, it won't make the parse function angry
+            case Some(name) => if(name.trim=="") "Anonymous" else name //If a player is lazy and enters some spaces as their name, it won't make the parse function angry
             case None => "Anonymous" //If player cancels dialog box, their score is recorded as "Anonymous"
           }
           pw.println(ign + " " + time) //Adds player data to end of score file
@@ -74,7 +86,7 @@ object Minesweeper {
           data.toFile //saves new score file
           data.printScores() //prints leaderboard
         }
-
+        
         def lossHandler(): Unit = {
           val dialog = new Alert(AlertType.Error) {
             initOwner(stage)
@@ -83,17 +95,38 @@ object Minesweeper {
             contentText = "Game lost."
           }.showAndWait()
         }
-
+        
+        def recurClear(currTile: Tile, currBut: Button, field: Minefield, buttons: IndexedSeq[Button]): Unit = {
+          currTile.flip()
+          val surr = field.getSurr(currTile.x, currTile.y)
+          if (surr > 0){
+            currBut.text = "" + surr
+          } else {
+            currBut.text = ""
+            //field.getSurrTiles(currTile).map { case (x,y) => recurClear(field.getTileAt(x,y), getButtonAt(butTiles, x, y), field, buttons)}
+          }
+          currBut.background = new Background(Array(new BackgroundFill(Gray, new CornerRadii(4), Insets.apply(.25))))
+        }
+        
+        def getButtonAt(bT: mutable.ListBuffer[(Button,Tile)], x: Int, y: Int): Button = {
+          bT.find { case (b,t) => t.x == x && t.y == y}.get._1
+        }
+        
         title = w + " by " + h + " Minesweeper Game by Chet Fagerstrom"
+        
+        var butTiles: mutable.ListBuffer[(Button, Tile)] = mutable.ListBuffer()
         
         val adjH = if (h > 9) h/9.0 else 1
         val adjW = if (w > 19) w/19.0 else 1
         scene = new Scene((w*100)/adjW,(h*100)/adjH){
+          val start = System.nanoTime()
           val field = Minefield(m,h,w)
-          var gameOver = false
-          val buttons = for(i <- 1 to w; j <- 1 to h) yield {
+          var gameOver = false  
+          
+          val buttons: IndexedSeq[Button] = for(i <- 1 to w; j <- 1 to h) yield {
             val button = new Button("")
             val thisTile = field.getTileAt(i,j)
+            butTiles += ((button, thisTile))
             button.layoutX = (i-1) * (w*100)/adjW / w
             button.layoutY = (j-1) * (h*100)/adjH / h
             button.prefWidth = (w*100)/adjW / w
@@ -108,13 +141,16 @@ object Minesweeper {
                 } else if(me.button == MouseButton.Primary){//Tile Action
                   if(!thisTile.marked()){
                     if(!thisTile.hasMine) {//Didn't step on a mine
-                      thisTile.flip()
-                      button.text = ""+field.getSurr(thisTile.x, thisTile.y)
-                      button.background = new Background(Array(new BackgroundFill(Gray, new CornerRadii(4), Insets.apply(.25))))
+                      recurClear(thisTile, button, field, buttons)
+                      // thisTile.flip()
+                      // val surr = field.getSurr(thisTile.x, thisTile.y)
+                      // if (surr > 0) button.text = "" + surr
+                      // else button.text = ""
+                      // button.background = new Background(Array(new BackgroundFill(Gray, new CornerRadii(4), Insets.apply(.25))))
                       if(field.isCleared()){//Win
                         gameOver = true
                         title = ":)"
-                        winHandler()
+                        winHandler(start)
                       }
                     } else {
 

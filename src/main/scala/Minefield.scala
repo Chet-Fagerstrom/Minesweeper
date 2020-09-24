@@ -1,5 +1,6 @@
 package scala
 
+import scala.collection.mutable
 class Minefield(m: Int, h: Int, w: Int, val fld: List[Tile]) {
 
     def getFlippedTiles(): List[Tile] = {
@@ -22,10 +23,20 @@ class Minefield(m: Int, h: Int, w: Int, val fld: List[Tile]) {
         getFlippedTiles().length == fld.length - m
     }
 
+    def getSurrTiles(t: Tile): IndexedSeq[(Int,Int)] = {
+        val tx = t.x
+        val ty = t.y
+        for(i <- tx-1 to tx+1; j <- ty-1 to ty+1; if (i > 0 && i <= w && j > 0 && j <= h)) yield {
+            (i,j)
+        }
+    }
+
     def getSurr(x: Int, y: Int): Int = {
         val thisTile = getTileAt(x,y)
         (for(x <- x-1 to x+1; y <- y-1 to y+1) yield {//checks 8 surrounding tiles
-            if(isMineAt(x,y)) 1
+            if(isMineAt(x,y)){
+                1
+            }
             else 0
         }).sum
     }
